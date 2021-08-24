@@ -330,3 +330,13 @@ void UDJSlot::SetSpeed(float InSpeed)
 		ToneGen->SetSpeed(InSpeed);
 	}
 }
+int32 UDJSlot::GetGlobalPtr()
+{
+	int32 GlobalPtr = 0;
+	if (DJSoundGen.IsValid())
+	{
+		FDJGenerator* ToneGen = static_cast<FDJGenerator*>(DJSoundGen.Get());
+		GlobalPtr = ToneGen->GlobalPointer;
+	}
+	return GlobalPtr;
+}

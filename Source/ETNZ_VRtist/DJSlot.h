@@ -26,7 +26,7 @@ struct FFTFreqDomainData
 {
 	GENERATED_BODY()
 		// arrays in which real and imaginary values will be populated.
-		float* OutReal; // Should point to an already allocated array of floats that is FFTInputParams::NumSamples long.
+	float* OutReal; // Should point to an already allocated array of floats that is FFTInputParams::NumSamples long.
 	float* OutImag; // Should point to an already allocated array of floats that is FFTInputParams::NumSamples long.
 };
 
@@ -49,6 +49,8 @@ public:
 	void fft(CArray& x);
 	void SetWindow(int32 winSize);
 	bool BufferIsEmpty = true;
+	int32 GlobalPointer = 0;
+
 private:
 	int32 NumChannels = 2;
 
@@ -89,7 +91,7 @@ private:
 	int16 HopSize = 256;
 	int16 FFTSize = 1024;
 	int32 TotalNumSample;
-	int32 GlobalPointer = 0;
+	
 
 
 };
@@ -108,6 +110,7 @@ public:
 
 	virtual ISoundGeneratorPtr CreateSoundGenerator(const FSoundGeneratorInitParams& InParams);
 
+	
 
 	UFUNCTION(BlueprintCallable, Category = "DJMachine")
 		void GetAudioDataFromBP(const TArray<float>& inData)
@@ -126,6 +129,8 @@ public:
 		void SetShift(float InShift);
 	UFUNCTION(BlueprintCallable, Category = "DJMachine")
 		void SetSpeed(float InSpeed);
+	UFUNCTION(BlueprintCallable, Category = "DJMachine")
+		int32 GetGlobalPtr();
 private:
 
 	ISoundGeneratorPtr DJSoundGen;
