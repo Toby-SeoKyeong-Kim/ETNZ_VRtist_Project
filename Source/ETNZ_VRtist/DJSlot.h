@@ -50,6 +50,8 @@ public:
 	void SetWindow(int32 winSize);
 	bool BufferIsEmpty = true;
 	int32 GlobalPointer = 0;
+	bool Pause = false;
+	int32 HotCueSlot[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 
 private:
 	int32 NumChannels = 2;
@@ -110,7 +112,7 @@ public:
 
 	virtual ISoundGeneratorPtr CreateSoundGenerator(const FSoundGeneratorInitParams& InParams);
 
-	
+	int32 GlobalPointer = 0;
 
 	UFUNCTION(BlueprintCallable, Category = "DJMachine")
 		void GetAudioDataFromBP(const TArray<float>& inData)
@@ -131,6 +133,18 @@ public:
 		void SetSpeed(float InSpeed);
 	UFUNCTION(BlueprintCallable, Category = "DJMachine")
 		int32 GetGlobalPtr();
+	UFUNCTION(BlueprintCallable, Category = "DJMachine")
+		void Pause();
+	UFUNCTION(BlueprintPure, Category = "DJMachine")
+		bool IsPause();
+	UFUNCTION(BlueprintCallable, Category = "DJMachine")
+		void Resume();
+	UFUNCTION(BlueprintCallable, Category = "DJMachine")
+		void SetHotCueSlot(int index, int value);
+	UFUNCTION(BlueprintCallable, Category = "DJMachine")
+		void HitHotCueSlot(int index);
+	UFUNCTION(BlueprintCallable, Category = "DJMachine")
+		void SweepGlobalPointer(int index);
 private:
 
 	ISoundGeneratorPtr DJSoundGen;
@@ -143,4 +157,5 @@ private:
 	float PitchShift;
 
 	bool BufferIsEmpty = true;
+	int32 HotCueSlot[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 };

@@ -184,6 +184,9 @@ void FDJGenerator::ProcessFFT(CArray& x)
 }
 int32 FDJGenerator::OnGenerateAudio(float* OutAudio, int32 NumSamples)
 {
+	if (Pause) {
+		return 0;
+	}
 	NumSamples = 2024;
 	PitchShiftRatio = powf(2.0, ShiftVal / 12.0);
 	check(NumChannels != 0);
@@ -305,6 +308,7 @@ ISoundGeneratorPtr UDJSlot::CreateSoundGenerator(const FSoundGeneratorInitParams
 		FDJGenerator* ToneGen = static_cast<FDJGenerator*>(DJSoundGen.Get());
 		ToneGen->GetAudioDataFromSynthComponent(AudioData);
 		ToneGen->BufferIsEmpty = false;
+		ToneGen->GlobalPointer = GlobalPointer;
 	}
 
 
@@ -337,6 +341,74 @@ int32 UDJSlot::GetGlobalPtr()
 	{
 		FDJGenerator* ToneGen = static_cast<FDJGenerator*>(DJSoundGen.Get());
 		GlobalPtr = ToneGen->GlobalPointer;
+		return GlobalPtr;
 	}
-	return GlobalPtr;
+	else {
+		return GlobalPointer;
+	}
+	
+}
+void UDJSlot::Pause()
+{
+	if (DJSoundGen.IsValid())
+	{
+		FDJGenerator* ToneGen = static_cast<FDJGenerator*>(DJSoundGen.Get());
+		ToneGen->Pause = true;
+	}
+}
+bool UDJSlot::IsPause()
+{
+	if (DJSoundGen.IsValid())
+	{
+		FDJGenerator* ToneGen = static_cast<FDJGenerator*>(DJSoundGen.Get());
+		return ToneGen->Pause;
+	}
+	return false;
+}
+void UDJSlot::Resume()
+{
+	if (DJSoundGen.IsValid())
+	{
+		FDJGenerator* ToneGen = static_cast<FDJGenerator*>(DJSoundGen.Get());
+		ToneGen->Pause = false;
+	}
+}
+
+void UDJSlot::SetHotCueSlot(int index, int value)
+{
+		
+		HotCueSlot[index] = value;
+}
+
+void UDJSlot::HitHotCueSlot(int index)
+{
+	if (DJSoundGen.IsValid())
+	{
+		FDJGenerator* ToneGen = static_cast<FDJGenerator*>(DJSoundGen.Get());
+		ToneGen->GlobalPointer = ToneGen->HotCueSlot[index];
+	}
+}
+
+void UDJSlot::SweepGlobalPointer(int index)
+{
+	if (DJSoundGen.IsValid())
+	{
+		FDJGenerator* ToneGen = static_cast<FDJGenerator*>(DJSoundGen.Get());
+		ToneGen->GlobalPointer += index * 128;
+		if (ToneGen->GlobalPointer < 0) {
+			ToneGen->GlobalPointer = 0;
+		}
+		if (ToneGen->GlobalPointer > TotalNumSample - 1) {
+			ToneGen->GlobalPointer = TotalNumSample -1;
+		}
+	}
+	else {
+		GlobalPointer += index * 128;
+		if (GlobalPointer < 0) {
+			GlobalPointer = 0;
+		}
+		if (GlobalPointer > TotalNumSample - 1) {
+			GlobalPointer = TotalNumSample - 1;
+		}
+	}
 }
