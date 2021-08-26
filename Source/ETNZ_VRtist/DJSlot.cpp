@@ -185,7 +185,11 @@ void FDJGenerator::ProcessFFT(CArray& x)
 int32 FDJGenerator::OnGenerateAudio(float* OutAudio, int32 NumSamples)
 {
 	if (Pause) {
-		return 0;
+		for (size_t i = 0; i < NumSamples; i++)
+		{
+			OutAudio[i] = 0.f;
+		}
+		return NumSamples;
 	}
 	NumSamples = 2024;
 	PitchShiftRatio = powf(2.0, ShiftVal / 12.0);
@@ -385,16 +389,17 @@ void UDJSlot::HitHotCueSlot(int index)
 	if (DJSoundGen.IsValid())
 	{
 		FDJGenerator* ToneGen = static_cast<FDJGenerator*>(DJSoundGen.Get());
-		ToneGen->GlobalPointer = ToneGen->HotCueSlot[index];
+		ToneGen->GlobalPointer = HotCueSlot[index];
 	}
+	GlobalPointer = HotCueSlot[index];
 }
 
-void UDJSlot::SweepGlobalPointer(int index)
+void UDJSlot::SweepGlobalPointer(int value)
 {
 	if (DJSoundGen.IsValid())
 	{
 		FDJGenerator* ToneGen = static_cast<FDJGenerator*>(DJSoundGen.Get());
-		ToneGen->GlobalPointer += index * 128;
+		ToneGen->GlobalPointer += value * 256;
 		if (ToneGen->GlobalPointer < 0) {
 			ToneGen->GlobalPointer = 0;
 		}
@@ -402,13 +407,13 @@ void UDJSlot::SweepGlobalPointer(int index)
 			ToneGen->GlobalPointer = TotalNumSample -1;
 		}
 	}
-	else {
-		GlobalPointer += index * 128;
+	
+		GlobalPointer += value * 256;
 		if (GlobalPointer < 0) {
 			GlobalPointer = 0;
 		}
 		if (GlobalPointer > TotalNumSample - 1) {
 			GlobalPointer = TotalNumSample - 1;
 		}
-	}
+	
 }

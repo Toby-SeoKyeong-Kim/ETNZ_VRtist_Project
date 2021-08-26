@@ -144,7 +144,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "DJMachine")
 		void HitHotCueSlot(int index);
 	UFUNCTION(BlueprintCallable, Category = "DJMachine")
-		void SweepGlobalPointer(int index);
+		void SweepGlobalPointer(int value);
 private:
 
 	ISoundGeneratorPtr DJSoundGen;
