@@ -417,3 +417,12 @@ void UDJSlot::SweepGlobalPointer(int value)
 		}
 	
 }
+void UDJSlot::ResetGlobalPointer()
+{
+	if (DJSoundGen.IsValid())
+	{
+		FDJGenerator* ToneGen = static_cast<FDJGenerator*>(DJSoundGen.Get());	
+		ToneGen->GlobalPointer = 0;
+	}
+	GlobalPointer = 0;
+}
