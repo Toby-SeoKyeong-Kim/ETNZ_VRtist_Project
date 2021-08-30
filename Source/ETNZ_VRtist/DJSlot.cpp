@@ -8,6 +8,8 @@ FDJGenerator::FDJGenerator(int32 InSampleRate, int32 InNumChannels)
 {
 	WriteBuffer.SetNum(8192);
 	HWindow.SetNum(FFTSize);
+	EQWindow.SetNum(128);
+	EQWindow2.SetNum(64);
 	LastInputPhases.SetNum(FFTSize);
 	LastOutputPhases.SetNum(FFTSize);
 	AnalysisMag.SetNum(FFTSize / 2 + 1);
@@ -35,6 +37,14 @@ void FDJGenerator::SetWindow(int32 winSize)
 	for (size_t i = 0; i < winSize; i++)
 	{
 		HWindow[i] = .5f * (1.f - cosf(2.f * 3.1415926535897932 * i / (float)(winSize - 1)));
+	}
+	for (size_t i = 0; i < 128; i++)
+	{
+		EQWindow[i] = .5f * (1.f - cosf(2.f * 3.1415926535897932 * i / (float)(128 - 1)));
+	}
+	for (size_t i = 0; i < 64; i++)
+	{
+		EQWindow2[i] = .5f * (1.f - cosf(2.f * 3.1415926535897932 * i / (float)(64 - 1)));
 	}
 }
 void FDJGenerator::fft(CArray& x)
@@ -125,6 +135,27 @@ void FDJGenerator::SetSpeed(float speed)
 			Speed = speed;
 		});
 }
+void FDJGenerator::SetHighEQ(float value)
+{
+	SynthCommand([this, value]()
+		{
+			HighEQ = value;
+		});
+}
+void FDJGenerator::SetMidEQ(float value)
+{
+	SynthCommand([this, value]()
+		{
+			MidEQ = value;
+		});
+}
+void FDJGenerator::SetLowEQ(float value)
+{
+	SynthCommand([this, value]()
+		{
+			LowEQ = value;
+		});
+}
 void FDJGenerator::ProcessFFT(CArray& x)
 {
 	for (size_t i = 0; i < FFTSize / 2; i++)
@@ -161,7 +192,7 @@ void FDJGenerator::ProcessFFT(CArray& x)
 
 	for (size_t i = 0; i < FFTSize / 2; i++)
 	{
-		float amplitude = SynthMag[i];
+		float amplitude = SynthMag[i] * ProcessEQ(i);
 
 		float binDeviation = SynthFreq[i] - i;
 
@@ -181,6 +212,19 @@ void FDJGenerator::ProcessFFT(CArray& x)
 		}
 		LastOutputPhases[i] = outPhase;
 	}
+}
+float FDJGenerator::ProcessEQ(int32 index)
+{
+	if (index < FFTSize/32) {
+		return 1.f * LowEQ;
+	}
+	if (index < FFTSize/16) {
+		return EQWindow2[index - FFTSize / 32] * MidEQ + EQWindow2[index] * LowEQ;
+	}
+	if (index < FFTSize / 8) {
+		return EQWindow[index] * MidEQ + EQWindow[index - FFTSize / 16] * HighEQ;
+	}
+	return 1.f * HighEQ;
 }
 int32 FDJGenerator::OnGenerateAudio(float* OutAudio, int32 NumSamples)
 {
@@ -215,31 +259,31 @@ int32 FDJGenerator::OnGenerateAudio(float* OutAudio, int32 NumSamples)
 		CFFTBuffer7[i / 2] = CAudioData[GlobalPointer + (i + 1)+HopSize * 6] * HWindow[i / 2] * ScaleFactor;
 	}
 	fft(CFFTBuffer);
-	//ProcessFFT(CFFTBuffer);
+	ProcessFFT(CFFTBuffer);
 	ifft(CFFTBuffer);
 	fft(CFFTBuffer1);
-	//ProcessFFT(CFFTBuffer1);
+	ProcessFFT(CFFTBuffer1);
 	ifft(CFFTBuffer1);
 
 	fft(CFFTBuffer2);
-	//ProcessFFT(CFFTBuffer2);
+	ProcessFFT(CFFTBuffer2);
 	ifft(CFFTBuffer2);
 	fft(CFFTBuffer3);
-	//ProcessFFT(CFFTBuffer3);
+	ProcessFFT(CFFTBuffer3);
 	ifft(CFFTBuffer3);
 
 	fft(CFFTBuffer4);
-	//ProcessFFT(CFFTBuffer4);
+	ProcessFFT(CFFTBuffer4);
 	ifft(CFFTBuffer4);
 	fft(CFFTBuffer5);
-	//ProcessFFT(CFFTBuffer5);
+	ProcessFFT(CFFTBuffer5);
 	ifft(CFFTBuffer5);
 
 	fft(CFFTBuffer6);
-	//ProcessFFT(CFFTBuffer6);
+	ProcessFFT(CFFTBuffer6);
 	ifft(CFFTBuffer6);
 	fft(CFFTBuffer7);
-	//ProcessFFT(CFFTBuffer7);
+	ProcessFFT(CFFTBuffer7);
 	ifft(CFFTBuffer7);
 
 	for (size_t i = 0; i < NumSamples; i += 2)
@@ -313,6 +357,9 @@ ISoundGeneratorPtr UDJSlot::CreateSoundGenerator(const FSoundGeneratorInitParams
 		ToneGen->GetAudioDataFromSynthComponent(AudioData);
 		ToneGen->BufferIsEmpty = false;
 		ToneGen->GlobalPointer = GlobalPointer;
+		ToneGen->SetHighEQ(HighEQ);
+		ToneGen->SetMidEQ(MidEQ);
+		ToneGen->SetLowEQ(LowEQ);
 	}
 
 
@@ -336,6 +383,33 @@ void UDJSlot::SetSpeed(float InSpeed)
 	{
 		FDJGenerator* ToneGen = static_cast<FDJGenerator*>(DJSoundGen.Get());
 		ToneGen->SetSpeed(InSpeed);
+	}
+}
+void UDJSlot::SetHigh(float value)
+{
+	HighEQ = value;
+	if (DJSoundGen.IsValid())
+	{
+		FDJGenerator* ToneGen = static_cast<FDJGenerator*>(DJSoundGen.Get());
+		ToneGen->SetHighEQ(value);
+	}
+}
+void UDJSlot::SetMid(float value)
+{
+	MidEQ = value;
+	if (DJSoundGen.IsValid())
+	{
+		FDJGenerator* ToneGen = static_cast<FDJGenerator*>(DJSoundGen.Get());
+		ToneGen->SetMidEQ(value);
+	}
+}
+void UDJSlot::SetLow(float value)
+{
+	LowEQ = value;
+	if (DJSoundGen.IsValid())
+	{
+		FDJGenerator* ToneGen = static_cast<FDJGenerator*>(DJSoundGen.Get());
+		ToneGen->SetLowEQ(value);
 	}
 }
 int32 UDJSlot::GetGlobalPtr()

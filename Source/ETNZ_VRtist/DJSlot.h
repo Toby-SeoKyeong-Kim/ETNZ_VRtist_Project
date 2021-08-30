@@ -45,6 +45,9 @@ public:
 	virtual void GetAudioDataFromSynthComponent(const TArray<float>& inData);
 	void SetShift(float shift);
 	void SetSpeed(float speed);
+	void SetHighEQ(float value);
+	void SetMidEQ(float value);
+	void SetLowEQ(float value);
 	void ifft(CArray& x);
 	void fft(CArray& x);
 	void SetWindow(int32 winSize);
@@ -59,6 +62,8 @@ private:
 	TArray<float> WriteBuffer;
 	TArray<float> AudioData;
 	TArray<float> HWindow;
+	TArray<float> EQWindow;
+	TArray<float> EQWindow2;
 	TArray<float> LastInputPhases;
 	TArray<float> LastOutputPhases;
 	TArray<float> AnalysisMag;
@@ -66,6 +71,7 @@ private:
 	TArray<float> SynthMag;
 	TArray<float> SynthFreq;
 	void ProcessFFT(CArray& x);
+	float ProcessEQ(int32 index);
 	float wrapPhase(float phaseIn);
 
 	CArray CAudioData;
@@ -94,7 +100,9 @@ private:
 	int16 FFTSize = 1024;
 	int32 TotalNumSample;
 	
-
+	float HighEQ = 1.f;
+	float MidEQ = 1.f;
+	float LowEQ = 1.f;
 
 };
 
@@ -132,6 +140,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "DJMachine")
 		void SetSpeed(float InSpeed);
 	UFUNCTION(BlueprintCallable, Category = "DJMachine")
+		void SetHigh(float value);
+	UFUNCTION(BlueprintCallable, Category = "DJMachine")
+		void SetMid(float value);
+	UFUNCTION(BlueprintCallable, Category = "DJMachine")
+		void SetLow(float value);
+	UFUNCTION(BlueprintCallable, Category = "DJMachine")
 		int32 GetGlobalPtr();
 	UFUNCTION(BlueprintCallable, Category = "DJMachine")
 		void Pause();
@@ -157,7 +171,9 @@ private:
 	TArray<float> AudioData;
 	float Speed;
 	float PitchShift;
-
+	float HighEQ = 1.f;
+	float MidEQ = 1.f;
+	float LowEQ = 1.f;
 	bool BufferIsEmpty = true;
 	int32 HotCueSlot[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 };
