@@ -54,7 +54,11 @@ public:
 	bool BufferIsEmpty = true;
 	int32 GlobalPointer = 0;
 	bool Pause = false;
+	bool LPF = false;
+	bool HPF = false;
+	bool FilterOn = false;
 	int32 HotCueSlot[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+	void CaculateCoefficient(float Freq, float q);
 
 private:
 	int32 NumChannels = 2;
@@ -70,7 +74,9 @@ private:
 	TArray<float> AnalysisFreq;
 	TArray<float> SynthMag;
 	TArray<float> SynthFreq;
+	TArray<float> FilterInterp;
 	void ProcessFFT(CArray& x);
+	void FilterInterpInit();
 	float ProcessEQ(int32 index);
 	float wrapPhase(float phaseIn);
 
@@ -103,6 +109,11 @@ private:
 	float HighEQ = 1.f;
 	float MidEQ = 1.f;
 	float LowEQ = 1.f;
+
+	float gLastX1 = 0, gLastX2 = 0;
+	float gLastY1 = 0, gLastY2 = 0;
+	float gA1 = 0, gA2 = 0;
+	float gB0 = 1, gB1 = 0, gB2 = 0;
 
 };
 
@@ -161,6 +172,18 @@ public:
 		void SweepGlobalPointer(int value);
 	UFUNCTION(BlueprintCallable, Category = "DJMachine")
 		void ResetGlobalPointer();
+	UFUNCTION(BlueprintCallable, Category = "DJMachine")
+		void LPFHPF(bool LPFBool, bool HPFBool);
+	UFUNCTION(BlueprintCallable, Category = "DJMachine")
+		void FilterPower(bool On);
+	UFUNCTION(BlueprintCallable, Category = "DJMachine")
+		void SetFilterFreqAndQ(float freq, float q);
+	UFUNCTION(BlueprintPure, Category = "DJMachine")
+		bool IsFilterOn();
+	UFUNCTION(BlueprintPure, Category = "DJMachine")
+		bool IsLPF();
+	UFUNCTION(BlueprintPure, Category = "DJMachine")
+		bool IsHPF();
 private:
 
 	ISoundGeneratorPtr DJSoundGen;
@@ -175,5 +198,10 @@ private:
 	float MidEQ = 1.f;
 	float LowEQ = 1.f;
 	bool BufferIsEmpty = true;
+	bool LPF = false;
+	bool HPF = false;
+	bool FilterOn = false;
 	int32 HotCueSlot[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+	float CutoffFreq = 2000.f;
+	float Qval = 0.707;
 };
