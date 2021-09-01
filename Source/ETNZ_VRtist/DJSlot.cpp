@@ -8,17 +8,12 @@ FDJGenerator::FDJGenerator(int32 InSampleRate, int32 InNumChannels)
 {
 	WriteBuffer.SetNum(8192);
 	HWindow.SetNum(FFTSize);
-	EQWindow.SetNum(128);
-	EQWindow2.SetNum(64);
 	LastInputPhases.SetNum(FFTSize);
 	LastOutputPhases.SetNum(FFTSize);
 	AnalysisMag.SetNum(FFTSize / 2 + 1);
 	AnalysisFreq.SetNum(FFTSize / 2 + 1);
 	SynthMag.SetNum(FFTSize / 2 + 1);
 	SynthFreq.SetNum(FFTSize / 2 + 1);
-
-	FilterInterp.SetNum(FFTSize/2);
-	FilterInterpInit();
 
 	SetWindow(FFTSize);
 	CFFTBuffer.resize(FFTSize);
@@ -30,78 +25,16 @@ FDJGenerator::FDJGenerator(int32 InSampleRate, int32 InNumChannels)
 	CFFTBuffer6.resize(FFTSize);
 	CFFTBuffer7.resize(FFTSize);
 	SynthBuffer.resize(FFTSize);
-
 }
 FDJGenerator::~FDJGenerator()
 {
 }
 
-void FDJGenerator::FilterInterpInit()
-{
-	double x0 = 0;
-	double x1 = 100;
-	double x2 = 100;
-
-	double y0 = 0;
-	double y1 = 0;
-	double y2 = 512;
-	double percent = 0.0;
-	for (size_t i = 0; i < 100; i ++) {
-		double toInt = ((y0 * (1 - percent) + y1 * percent) * (1 - percent) + (y1 * (1 - percent) + y2 * percent) * percent) + .5;
-		FilterInterp[i] = (int32)toInt;
-
-		percent += 0.01;
-	}
-}
-void FDJGenerator::CaculateCoefficient(float Freq, float q, int type)
-{
-	SynthCommand([this, Freq, q, type]()
-		{
-			float k = tanf(PI * Freq / 48000.f);
-			float norm = 1.0 / (1 + k / q + k * k);
-
-			switch (type)
-			{
-			case 1:
-				gB0 = k * k * norm;
-				gB1 = 2.0 * gB0;
-				gB2 = gB0;
-				gA1 = 2 * (k * k - 1) * norm;
-				gA2 = (1 - k / q + k * k) * norm;
-				break;
-
-			case 2:
-				gB0 = 1 * norm;
-				gB1 = -2 * gB0;
-				gB2 = gB0;
-				gA1 = 2 * (k * k - 1) * norm;
-				gA2 = (1 - k / q + k * k) * norm;
-				break;
-				
-			default:
-				gB0 = 1.f;
-				gB1 = 0;
-				gB2 = 0;
-				gA1 = 0;
-				gA2 = 0;
-				break;
-			}
-			
-		});
-}
 void FDJGenerator::SetWindow(int32 winSize)
 {
 	for (size_t i = 0; i < winSize; i++)
 	{
 		HWindow[i] = .5f * (1.f - cosf(2.f * 3.1415926535897932 * i / (float)(winSize - 1)));
-	}
-	for (size_t i = 0; i < 128; i++)
-	{
-		EQWindow[i] = .5f * (1.f - cosf(2.f * 3.1415926535897932 * i / (float)(128 - 1)));
-	}
-	for (size_t i = 0; i < 64; i++)
-	{
-		EQWindow2[i] = .5f * (1.f - cosf(2.f * 3.1415926535897932 * i / (float)(64 - 1)));
 	}
 }
 void FDJGenerator::fft(CArray& x)
@@ -192,35 +125,6 @@ void FDJGenerator::SetSpeed(float speed)
 			Speed = speed;
 		});
 }
-void FDJGenerator::SetHighEQ(float value)
-{
-	SynthCommand([this, value]()
-		{
-			HighEQ = value;
-		});
-}
-void FDJGenerator::SetMidEQ(float value)
-{
-	SynthCommand([this, value]()
-		{
-			MidEQ = value;
-		});
-}
-void FDJGenerator::SetLowEQ(float value)
-{
-	SynthCommand([this, value]()
-		{
-			LowEQ = value;
-		});
-}
-void FDJGenerator::SetLPFHPF(bool LPFBool, bool HPFBool)
-{
-	SynthCommand([this, LPFBool, HPFBool]()
-		{
-			LPF = LPFBool;
-			HPF = HPFBool;
-		});
-}
 void FDJGenerator::ProcessFFT(CArray& x)
 {
 	for (size_t i = 0; i < FFTSize / 2; i++)
@@ -257,7 +161,7 @@ void FDJGenerator::ProcessFFT(CArray& x)
 
 	for (size_t i = 0; i < FFTSize / 2; i++)
 	{
-		float amplitude = SynthMag[i] * ProcessEQ(i);
+		float amplitude = SynthMag[i];
 
 		float binDeviation = SynthFreq[i] - i;
 
@@ -277,19 +181,6 @@ void FDJGenerator::ProcessFFT(CArray& x)
 		}
 		LastOutputPhases[i] = outPhase;
 	}
-}
-float FDJGenerator::ProcessEQ(int32 index)
-{
-	if (index < FFTSize/32) {
-		return 1.f * LowEQ;
-	}
-	if (index < FFTSize/16) {
-		return EQWindow2[index - FFTSize / 32] * MidEQ + EQWindow2[index] * LowEQ;
-	}
-	if (index < FFTSize / 8) {
-		return EQWindow[index] * MidEQ + EQWindow[index - FFTSize / 16] * HighEQ;
-	}
-	return 1.f * HighEQ;
 }
 int32 FDJGenerator::OnGenerateAudio(float* OutAudio, int32 NumSamples)
 {
@@ -324,31 +215,31 @@ int32 FDJGenerator::OnGenerateAudio(float* OutAudio, int32 NumSamples)
 		CFFTBuffer7[i / 2] = CAudioData[GlobalPointer + (i + 1)+HopSize * 6] * HWindow[i / 2] * ScaleFactor;
 	}
 	fft(CFFTBuffer);
-	ProcessFFT(CFFTBuffer);
+	//ProcessFFT(CFFTBuffer);
 	ifft(CFFTBuffer);
 	fft(CFFTBuffer1);
-	ProcessFFT(CFFTBuffer1);
+	//ProcessFFT(CFFTBuffer1);
 	ifft(CFFTBuffer1);
 
 	fft(CFFTBuffer2);
-	ProcessFFT(CFFTBuffer2);
+	//ProcessFFT(CFFTBuffer2);
 	ifft(CFFTBuffer2);
 	fft(CFFTBuffer3);
-	ProcessFFT(CFFTBuffer3);
+	//ProcessFFT(CFFTBuffer3);
 	ifft(CFFTBuffer3);
 
 	fft(CFFTBuffer4);
-	ProcessFFT(CFFTBuffer4);
+	//ProcessFFT(CFFTBuffer4);
 	ifft(CFFTBuffer4);
 	fft(CFFTBuffer5);
-	ProcessFFT(CFFTBuffer5);
+	//ProcessFFT(CFFTBuffer5);
 	ifft(CFFTBuffer5);
 
 	fft(CFFTBuffer6);
-	ProcessFFT(CFFTBuffer6);
+	//ProcessFFT(CFFTBuffer6);
 	ifft(CFFTBuffer6);
 	fft(CFFTBuffer7);
-	ProcessFFT(CFFTBuffer7);
+	//ProcessFFT(CFFTBuffer7);
 	ifft(CFFTBuffer7);
 
 	for (size_t i = 0; i < NumSamples; i += 2)
@@ -369,25 +260,9 @@ int32 FDJGenerator::OnGenerateAudio(float* OutAudio, int32 NumSamples)
 
 	for (size_t i = 0; i < NumSamples; i++)
 	{
-		if (FilterOn) {
-				float in = WriteBuffer[(8192 + i + IntimeWritePointer) % 8192] * 16;
-				float out = (gB0 * in) + (gB1 * gLastX1) + (gB2 * gLastX2) - (gA1 * gLastY1) - (gA2 * gLastY2);
-				OutAudio[i] = out;
-
-				gLastX2 = gLastX1;
-				gLastX1 = in;
-				
-				gLastY2 = gLastY1;
-				gLastY1 = out;
-		}
-		else {
-			OutAudio[i] = WriteBuffer[(8192 + i + IntimeWritePointer) % 8192] * 16;
-		}
-		
+		OutAudio[i] = WriteBuffer[(8192 + i + IntimeWritePointer) % 8192] * 16;
 		WriteBuffer[(8192 + i + IntimeWritePointer) % 8192] = 0.f;
 	}
-	
-	
 	IntimeWritePointer += NumSamples;
 	if (IntimeWritePointer >= 8192) {
 		IntimeWritePointer -= 8192;
@@ -438,13 +313,6 @@ ISoundGeneratorPtr UDJSlot::CreateSoundGenerator(const FSoundGeneratorInitParams
 		ToneGen->GetAudioDataFromSynthComponent(AudioData);
 		ToneGen->BufferIsEmpty = false;
 		ToneGen->GlobalPointer = GlobalPointer;
-		ToneGen->SetHighEQ(HighEQ);
-		ToneGen->SetMidEQ(MidEQ);
-		ToneGen->SetLowEQ(LowEQ);
-		ToneGen->LPF = LPF;
-		ToneGen->HPF = HPF;
-		ToneGen->FilterOn = FilterOn;
-		ToneGen->CaculateCoefficient(CutoffFreq, Qval, FilterType);
 	}
 
 
@@ -468,33 +336,6 @@ void UDJSlot::SetSpeed(float InSpeed)
 	{
 		FDJGenerator* ToneGen = static_cast<FDJGenerator*>(DJSoundGen.Get());
 		ToneGen->SetSpeed(InSpeed);
-	}
-}
-void UDJSlot::SetHigh(float value)
-{
-	HighEQ = value;
-	if (DJSoundGen.IsValid())
-	{
-		FDJGenerator* ToneGen = static_cast<FDJGenerator*>(DJSoundGen.Get());
-		ToneGen->SetHighEQ(value);
-	}
-}
-void UDJSlot::SetMid(float value)
-{
-	MidEQ = value;
-	if (DJSoundGen.IsValid())
-	{
-		FDJGenerator* ToneGen = static_cast<FDJGenerator*>(DJSoundGen.Get());
-		ToneGen->SetMidEQ(value);
-	}
-}
-void UDJSlot::SetLow(float value)
-{
-	LowEQ = value;
-	if (DJSoundGen.IsValid())
-	{
-		FDJGenerator* ToneGen = static_cast<FDJGenerator*>(DJSoundGen.Get());
-		ToneGen->SetLowEQ(value);
 	}
 }
 int32 UDJSlot::GetGlobalPtr()
@@ -527,36 +368,6 @@ bool UDJSlot::IsPause()
 		return ToneGen->Pause;
 	}
 	return false;
-}
-bool UDJSlot::IsFilterOn()
-{
-	if (DJSoundGen.IsValid())
-	{
-		FDJGenerator* ToneGen = static_cast<FDJGenerator*>(DJSoundGen.Get());
-		FilterOn = ToneGen->FilterOn;
-		return ToneGen->FilterOn;
-	}
-	return FilterOn;
-}
-bool UDJSlot::IsLPF()
-{
-	if (DJSoundGen.IsValid())
-	{
-		FDJGenerator* ToneGen = static_cast<FDJGenerator*>(DJSoundGen.Get());
-		LPF = ToneGen->LPF;
-		return ToneGen->LPF;
-	}
-	return LPF;
-}
-bool UDJSlot::IsHPF()
-{
-	if (DJSoundGen.IsValid())
-	{
-		FDJGenerator* ToneGen = static_cast<FDJGenerator*>(DJSoundGen.Get());
-		HPF = ToneGen->HPF;
-		return ToneGen->HPF;
-	}
-	return HPF;
 }
 void UDJSlot::Resume()
 {
@@ -614,50 +425,4 @@ void UDJSlot::ResetGlobalPointer()
 		ToneGen->GlobalPointer = 0;
 	}
 	GlobalPointer = 0;
-}
-
-void UDJSlot::LPFHPF(bool LPFBool, bool HPFBool)
-{
-	LPF = LPFBool;
-	HPF = HPFBool;
-	if (DJSoundGen.IsValid())
-	{
-		FDJGenerator* ToneGen = static_cast<FDJGenerator*>(DJSoundGen.Get());
-		ToneGen->SetLPFHPF(LPF, HPF);
-	}
-	if (LPF) {
-		FilterType = 1;
-		return;
-	}
-	if (HPF) {
-		FilterType = 2;
-		return;
-	}
-	FilterType = 0;
-}
-
-void UDJSlot::FilterPower(bool On)
-{
-	if (DJSoundGen.IsValid())
-	{
-		FDJGenerator* ToneGen = static_cast<FDJGenerator*>(DJSoundGen.Get());
-		ToneGen->FilterOn = On;
-	}
-	FilterOn = On;
-}
-
-void UDJSlot::SetFilterFreqAndQ(float freq, float q)
-{
-	CutoffFreq = freq;
-	Qval = q;
-	if (DJSoundGen.IsValid())
-	{
-		FDJGenerator* ToneGen = static_cast<FDJGenerator*>(DJSoundGen.Get());
-		ToneGen->CaculateCoefficient(freq, q, FilterType);
-	}
-}
-
-void UDJSlot::SetfilterType(int filterType)
-{
-	FilterType = filterType;
 }
