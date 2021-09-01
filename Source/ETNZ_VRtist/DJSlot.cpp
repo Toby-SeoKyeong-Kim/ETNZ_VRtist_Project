@@ -53,18 +53,40 @@ void FDJGenerator::FilterInterpInit()
 		percent += 0.01;
 	}
 }
-void FDJGenerator::CaculateCoefficient(float Freq, float q)
+void FDJGenerator::CaculateCoefficient(float Freq, float q, int type)
 {
-	SynthCommand([this, Freq, q]()
+	SynthCommand([this, Freq, q, type]()
 		{
 			float k = tanf(PI * Freq / 48000.f);
 			float norm = 1.0 / (1 + k / q + k * k);
 
-			gB0 = k * k * norm;
-			gB1 = 2.0 * gB0;
-			gB2 = gB0;
-			gA1 = 2 * (k * k - 1) * norm;
-			gA2 = (1 - k / q + k * k) * norm;
+			switch (type)
+			{
+			case 1:
+				gB0 = k * k * norm;
+				gB1 = 2.0 * gB0;
+				gB2 = gB0;
+				gA1 = 2 * (k * k - 1) * norm;
+				gA2 = (1 - k / q + k * k) * norm;
+				break;
+
+			case 2:
+				gB0 = 1 * norm;
+				gB1 = -2 * gB0;
+				gB2 = gB0;
+				gA1 = 2 * (k * k - 1) * norm;
+				gA2 = (1 - k / q + k * k) * norm;
+				break;
+				
+			default:
+				gB0 = 1.f;
+				gB1 = 0;
+				gB2 = 0;
+				gA1 = 0;
+				gA2 = 0;
+				break;
+			}
+			
 		});
 }
 void FDJGenerator::SetWindow(int32 winSize)
@@ -189,6 +211,14 @@ void FDJGenerator::SetLowEQ(float value)
 	SynthCommand([this, value]()
 		{
 			LowEQ = value;
+		});
+}
+void FDJGenerator::SetLPFHPF(bool LPFBool, bool HPFBool)
+{
+	SynthCommand([this, LPFBool, HPFBool]()
+		{
+			LPF = LPFBool;
+			HPF = HPFBool;
 		});
 }
 void FDJGenerator::ProcessFFT(CArray& x)
@@ -340,7 +370,6 @@ int32 FDJGenerator::OnGenerateAudio(float* OutAudio, int32 NumSamples)
 	for (size_t i = 0; i < NumSamples; i++)
 	{
 		if (FilterOn) {
-			if (LPF) {
 				float in = WriteBuffer[(8192 + i + IntimeWritePointer) % 8192] * 16;
 				float out = (gB0 * in) + (gB1 * gLastX1) + (gB2 * gLastX2) - (gA1 * gLastY1) - (gA2 * gLastY2);
 				OutAudio[i] = out;
@@ -350,11 +379,6 @@ int32 FDJGenerator::OnGenerateAudio(float* OutAudio, int32 NumSamples)
 				
 				gLastY2 = gLastY1;
 				gLastY1 = out;
-				
-			}
-			if (HPF) {
-				OutAudio[i] = WriteBuffer[(8192 + i + IntimeWritePointer) % 8192] * 16;
-			}
 		}
 		else {
 			OutAudio[i] = WriteBuffer[(8192 + i + IntimeWritePointer) % 8192] * 16;
@@ -418,9 +442,9 @@ ISoundGeneratorPtr UDJSlot::CreateSoundGenerator(const FSoundGeneratorInitParams
 		ToneGen->SetMidEQ(MidEQ);
 		ToneGen->SetLowEQ(LowEQ);
 		ToneGen->LPF = LPF;
-		ToneGen->LPF = HPF;
+		ToneGen->HPF = HPF;
 		ToneGen->FilterOn = FilterOn;
-		ToneGen->CaculateCoefficient(CutoffFreq, Qval);
+		ToneGen->CaculateCoefficient(CutoffFreq, Qval, FilterType);
 	}
 
 
@@ -509,6 +533,7 @@ bool UDJSlot::IsFilterOn()
 	if (DJSoundGen.IsValid())
 	{
 		FDJGenerator* ToneGen = static_cast<FDJGenerator*>(DJSoundGen.Get());
+		FilterOn = ToneGen->FilterOn;
 		return ToneGen->FilterOn;
 	}
 	return FilterOn;
@@ -518,6 +543,7 @@ bool UDJSlot::IsLPF()
 	if (DJSoundGen.IsValid())
 	{
 		FDJGenerator* ToneGen = static_cast<FDJGenerator*>(DJSoundGen.Get());
+		LPF = ToneGen->LPF;
 		return ToneGen->LPF;
 	}
 	return LPF;
@@ -527,6 +553,7 @@ bool UDJSlot::IsHPF()
 	if (DJSoundGen.IsValid())
 	{
 		FDJGenerator* ToneGen = static_cast<FDJGenerator*>(DJSoundGen.Get());
+		HPF = ToneGen->HPF;
 		return ToneGen->HPF;
 	}
 	return HPF;
@@ -591,14 +618,22 @@ void UDJSlot::ResetGlobalPointer()
 
 void UDJSlot::LPFHPF(bool LPFBool, bool HPFBool)
 {
+	LPF = LPFBool;
+	HPF = HPFBool;
 	if (DJSoundGen.IsValid())
 	{
 		FDJGenerator* ToneGen = static_cast<FDJGenerator*>(DJSoundGen.Get());
-		ToneGen->LPF = LPFBool;
-		ToneGen->HPF = HPFBool;
+		ToneGen->SetLPFHPF(LPF, HPF);
 	}
-	LPF = LPFBool;
-	HPF = HPFBool;
+	if (LPF) {
+		FilterType = 1;
+		return;
+	}
+	if (HPF) {
+		FilterType = 2;
+		return;
+	}
+	FilterType = 0;
 }
 
 void UDJSlot::FilterPower(bool On)
@@ -618,6 +653,11 @@ void UDJSlot::SetFilterFreqAndQ(float freq, float q)
 	if (DJSoundGen.IsValid())
 	{
 		FDJGenerator* ToneGen = static_cast<FDJGenerator*>(DJSoundGen.Get());
-		ToneGen->CaculateCoefficient(freq, q);
+		ToneGen->CaculateCoefficient(freq, q, FilterType);
 	}
+}
+
+void UDJSlot::SetfilterType(int filterType)
+{
+	FilterType = filterType;
 }

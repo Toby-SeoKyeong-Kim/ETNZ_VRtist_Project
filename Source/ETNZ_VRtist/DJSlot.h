@@ -58,7 +58,8 @@ public:
 	bool HPF = false;
 	bool FilterOn = false;
 	int32 HotCueSlot[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-	void CaculateCoefficient(float Freq, float q);
+	void CaculateCoefficient(float Freq, float q, int type);
+	void SetLPFHPF(bool LPFBool, bool HPFBool);
 
 private:
 	int32 NumChannels = 2;
@@ -184,6 +185,8 @@ public:
 		bool IsLPF();
 	UFUNCTION(BlueprintPure, Category = "DJMachine")
 		bool IsHPF();
+	UFUNCTION(BlueprintCallable, Category = "DJMachine")
+		void SetfilterType(int filterType);
 private:
 
 	ISoundGeneratorPtr DJSoundGen;
@@ -200,6 +203,7 @@ private:
 	bool BufferIsEmpty = true;
 	bool LPF = false;
 	bool HPF = false;
+	int FilterType = 0;
 	bool FilterOn = false;
 	int32 HotCueSlot[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 	float CutoffFreq = 2000.f;
