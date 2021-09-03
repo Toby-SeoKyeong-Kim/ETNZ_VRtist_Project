@@ -2,6 +2,7 @@
 
 
 #include "DJSlot.h"
+#include "Async/Async.h"
 
 FDJGenerator::FDJGenerator(int32 InSampleRate, int32 InNumChannels)
 	: NumChannels(InNumChannels)
@@ -293,7 +294,7 @@ float FDJGenerator::ProcessEQ(int32 index)
 }
 int32 FDJGenerator::OnGenerateAudio(float* OutAudio, int32 NumSamples)
 {
-	if (Pause) {
+	if (Pause || WaitingHotCue) {
 		for (size_t i = 0; i < NumSamples; i++)
 		{
 			OutAudio[i] = 0.f;
@@ -304,11 +305,22 @@ int32 FDJGenerator::OnGenerateAudio(float* OutAudio, int32 NumSamples)
 	PitchShiftRatio = powf(2.0, ShiftVal / 12.0);
 	check(NumChannels != 0);
 	if (GlobalPointer >= TotalNumSample) {
-		return 0;
+		Finished = true;
+		for (size_t i = 0; i < NumSamples; i++)
+		{
+			OutAudio[i] = 0.f;
+		}
+		return NumSamples;
 	}
 	if (GlobalPointer + NumSamples + HopSize * 7 >= TotalNumSample) {
-		NumSamples = TotalNumSample - GlobalPointer - (HopSize * 7);
-		return 0;
+		NumSamples = TotalNumSample - GlobalPointer - HopSize * 7;
+		GlobalPointer = TotalNumSample;
+		Finished = true;
+		for (size_t i = 0; i < NumSamples; i++)
+		{
+			OutAudio[i] = 0.f;
+		}
+		return NumSamples;
 	}
 
 	for (size_t i = 0; i < NumSamples; i += 2)
@@ -445,6 +457,7 @@ ISoundGeneratorPtr UDJSlot::CreateSoundGenerator(const FSoundGeneratorInitParams
 		ToneGen->HPF = HPF;
 		ToneGen->FilterOn = FilterOn;
 		ToneGen->CaculateCoefficient(CutoffFreq, Qval, FilterType);
+		ToneGen->WaitingHotCue = WaitingHotCue;
 	}
 
 
@@ -557,6 +570,34 @@ bool UDJSlot::IsHPF()
 		return ToneGen->HPF;
 	}
 	return HPF;
+}
+bool UDJSlot::IsWaitingHotCue()
+{
+	if (DJSoundGen.IsValid())
+	{
+		FDJGenerator* ToneGen = static_cast<FDJGenerator*>(DJSoundGen.Get());
+		WaitingHotCue = ToneGen->WaitingHotCue;
+		return ToneGen->WaitingHotCue;
+	}
+	return WaitingHotCue;
+}
+void UDJSlot::IsFinished_Internal()
+{
+	AsyncTask(ENamedThreads::GameThread, [=]()
+		{
+			if (DJSoundGen.IsValid())
+			{
+				FDJGenerator* ToneGen = static_cast<FDJGenerator*>(DJSoundGen.Get());
+				if (ToneGen->Finished) {
+					if (OnFinished.IsBound())
+					{
+						ToneGen->Finished = false;
+						OnFinished.Broadcast(ToneGen->Finished);
+						
+					}
+				}
+			}
+		});
 }
 void UDJSlot::Resume()
 {

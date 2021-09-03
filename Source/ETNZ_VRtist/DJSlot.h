@@ -57,6 +57,8 @@ public:
 	bool LPF = false;
 	bool HPF = false;
 	bool FilterOn = false;
+	bool WaitingHotCue = false;
+	bool Finished = false;
 	int32 HotCueSlot[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 	void CaculateCoefficient(float Freq, float q, int type);
 	void SetLPFHPF(bool LPFBool, bool HPFBool);
@@ -118,7 +120,14 @@ private:
 
 };
 
-UCLASS(ClassGroup = Synth, meta = (BlueprintSpawnableComponent))
+/**
+ * Delegate broadcast to get the Finish bool
+ *
+ * @param IsFinished Whether the track playing is finished 
+ */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnFinished, bool, IsFinished);
+
+UCLASS(Blueprintable, ClassGroup = Synth, meta = (BlueprintSpawnableComponent))
 class ETNZ_VRTIST_API UDJSlot : public USynthComponent
 {
 	GENERATED_BODY()
@@ -133,6 +142,9 @@ public:
 	virtual ISoundGeneratorPtr CreateSoundGenerator(const FSoundGeneratorInitParams& InParams);
 
 	int32 GlobalPointer = 0;
+
+	UPROPERTY(BlueprintAssignable, Category = "DJMachine")
+		FOnFinished OnFinished;
 
 	UFUNCTION(BlueprintCallable, Category = "DJMachine")
 		void GetAudioDataFromBP(const TArray<float>& inData)
@@ -187,6 +199,10 @@ public:
 		bool IsHPF();
 	UFUNCTION(BlueprintCallable, Category = "DJMachine")
 		void SetfilterType(int filterType);
+	UFUNCTION(BlueprintPure, Category = "DJMachine")
+		bool IsWaitingHotCue();
+	UFUNCTION(BlueprintCallable, Category = "DJMachine")
+		void IsFinished_Internal();
 private:
 
 	ISoundGeneratorPtr DJSoundGen;
@@ -208,4 +224,5 @@ private:
 	int32 HotCueSlot[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 	float CutoffFreq = 2000.f;
 	float Qval = 0.707;
+	bool WaitingHotCue = false;
 };
