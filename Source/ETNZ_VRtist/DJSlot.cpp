@@ -702,3 +702,13 @@ void UDJSlot::SetfilterType(int filterType)
 {
 	FilterType = filterType;
 }
+
+void UDJSlot::SetWaitingHotCue(bool HotCue)
+{
+	WaitingHotCue = HotCue;
+	if (DJSoundGen.IsValid())
+	{
+		FDJGenerator* ToneGen = static_cast<FDJGenerator*>(DJSoundGen.Get());
+		ToneGen->WaitingHotCue = WaitingHotCue;
+	}
+}

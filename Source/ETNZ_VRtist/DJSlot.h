@@ -203,6 +203,8 @@ public:
 		bool IsWaitingHotCue();
 	UFUNCTION(BlueprintCallable, Category = "DJMachine")
 		void IsFinished_Internal();
+	UFUNCTION(BlueprintCallable, Category = "DJMachine")
+		void SetWaitingHotCue(bool HotCue);
 private:
 
 	ISoundGeneratorPtr DJSoundGen;
