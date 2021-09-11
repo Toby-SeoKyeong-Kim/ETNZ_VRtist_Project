@@ -20,8 +20,6 @@ public:
 	void SetHand(EControllerHand Hand) { MotionController->SetTrackingSource(Hand); }
 	void PairController(AHandController* Controller);
 
-	void Grip();
-	void Release();
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -39,24 +37,6 @@ private:
 	//
 	UPROPERTY(VisibleAnywhere)
 		UMotionControllerComponent* MotionController;
-
-	
-
-	UPROPERTY(EditDefaultsOnly)
-		class UHapticFeedbackEffect_Base* HapticEffect;
-
-	UFUNCTION()
-		void ActorBeginOverlap(AActor* OverlappedActor, AActor* OtherActor);
-	UFUNCTION()
-		void ActorEndOverlap(AActor* OverlappedActor, AActor* OtherActor);
-	
-
-	bool CanClimb() const;
-
-
-	bool bCanClimb = false;
-	bool bIsClimbing = false;
-	FVector ClimbingStartLocation;
 
 	AHandController* OtherController;
 };
