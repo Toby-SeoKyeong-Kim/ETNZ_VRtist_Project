@@ -147,17 +147,25 @@ public:
 		FOnFinished OnFinished;
 
 	UFUNCTION(BlueprintCallable, Category = "DJMachine")
-		void GetAudioDataFromBP(const TArray<float>& inData)
+		TArray<float> GetAudioDataFromBP(const TArray<float>& inData)
 	{
 
 		AudioData.Empty();
-
+		TArray<float> AveragedData;
+		float tempFloat = 0;
 		for (size_t i = 0; i < inData.Num(); i++)
 		{
+			if (i != 0 && i % 128 == 0) {
+
+				AveragedData.Add(tempFloat / 128);
+				tempFloat = 0;
+			}
 			AudioData.Add(inData[i]);
+			tempFloat += inData[i];
 		}
 		TotalNumSample = AudioData.Num();
 		BufferIsEmpty = false;
+		return AveragedData;
 	};
 	UFUNCTION(BlueprintCallable, Category = "DJMachine")
 		void SetShift(float InShift);
