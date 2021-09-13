@@ -8,7 +8,7 @@ public class ETNZ_VRtist : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore","UMG", "AudioMixer", "HeadMountedDisplay" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore","UMG", "AudioMixer", "HeadMountedDisplay"});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
