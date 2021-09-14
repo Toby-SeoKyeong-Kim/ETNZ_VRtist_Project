@@ -47,6 +47,8 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 		USceneComponent* VRRoot;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		class UCameraComponent* Camera;
 private:
 	
 	void TriggerLeft() { LeftHand->Widgetinteraction->PressPointerKey(FKey(EKeys::LeftMouseButton)); };
@@ -57,8 +59,7 @@ private:
 	bool bIsPicker = false;
 private:
 
-	UPROPERTY(VisibleAnywhere)
-		class UCameraComponent* Camera;
+	
 
 	void MoveForward(float throttle);
 	void MoveRight(float throttle);
