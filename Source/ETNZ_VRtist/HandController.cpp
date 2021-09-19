@@ -47,3 +47,7 @@ void AHandController::PairController(AHandController* Controller)
 }
 
 
+EControllerHand AHandController::GetHandSide()
+{
+	return HandSide;
+}

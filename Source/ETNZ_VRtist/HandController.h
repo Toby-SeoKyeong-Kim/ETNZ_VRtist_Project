@@ -17,7 +17,7 @@ public:
 	// Sets default values for this actor's properties
 	AHandController();
 
-	void SetHand(EControllerHand Hand) { MotionController->SetTrackingSource(Hand); }
+	void SetHand(EControllerHand Hand) { MotionController->SetTrackingSource(Hand); HandSide = Hand; }
 	void PairController(AHandController* Controller);
 
 protected:
@@ -30,7 +30,8 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 		UWidgetInteractionComponent* Widgetinteraction;
-
+	UFUNCTION(BlueprintCallable, Category = "HandController")
+		EControllerHand GetHandSide();
 private:
 	//config
 	
@@ -39,4 +40,5 @@ private:
 		UMotionControllerComponent* MotionController;
 
 	AHandController* OtherController;
+	EControllerHand HandSide;
 };
