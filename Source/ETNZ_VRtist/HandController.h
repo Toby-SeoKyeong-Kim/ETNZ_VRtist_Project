@@ -16,7 +16,8 @@ class ETNZ_VRTIST_API AHandController : public AActor
 public:
 	// Sets default values for this actor's properties
 	AHandController();
-
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		UMotionControllerComponent* MotionController;
 	void SetHand(EControllerHand Hand) { MotionController->SetTrackingSource(Hand); HandSide = Hand; }
 	void PairController(AHandController* Controller);
 
@@ -32,12 +33,13 @@ public:
 		UWidgetInteractionComponent* Widgetinteraction;
 	UFUNCTION(BlueprintCallable, Category = "HandController")
 		EControllerHand GetHandSide();
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		bool IsDrawingCpp = false;
 private:
 	//config
 	
 	//
-	UPROPERTY(VisibleAnywhere)
-		UMotionControllerComponent* MotionController;
+	
 
 	AHandController* OtherController;
 	EControllerHand HandSide;

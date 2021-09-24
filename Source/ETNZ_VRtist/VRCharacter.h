@@ -49,6 +49,12 @@ public:
 		USceneComponent* VRRoot;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 		class UCameraComponent* Camera;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		class AHandController* LeftHand;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		class AHandController* RightHand;
+	
 private:
 	
 	void TriggerLeft() { LeftHand->Widgetinteraction->PressPointerKey(FKey(EKeys::LeftMouseButton)); };
@@ -64,11 +70,7 @@ private:
 	void MoveForward(float throttle);
 	void MoveRight(float throttle);
 
-	UPROPERTY()
-		class AHandController* LeftHand;
-
-	UPROPERTY()
-		class AHandController* RightHand;
+	
 
 	UPROPERTY(EditDefaultsOnly)
 		TSubclassOf<AHandController> HandControllerClass;
