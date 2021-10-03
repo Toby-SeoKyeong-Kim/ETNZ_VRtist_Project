@@ -35,6 +35,34 @@ public:
 		EControllerHand GetHandSide();
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 		bool IsDrawingCpp = false;
+	UFUNCTION(BlueprintPure, Category = "HandController")
+		AHandController* GetOtherHand();
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		bool EditingEQHigh1 = false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		bool EditingEQHigh2 = false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		bool EditingEQMid1 = false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		bool EditingEQMid2 = false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		bool EditingEQLow1 = false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		bool EditingEQLow2 = false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		bool EditingFreq1 = false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		bool EditingFreq2 = false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		bool EditingQ1 = false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		bool EditingQ2 = false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		bool EditingCrossFader = false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		bool EditingVol1 = false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		bool EditingVol2 = false;
 private:
 	//config
 	

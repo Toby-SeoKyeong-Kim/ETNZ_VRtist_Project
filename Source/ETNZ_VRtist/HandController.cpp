@@ -51,3 +51,8 @@ EControllerHand AHandController::GetHandSide()
 {
 	return HandSide;
 }
+
+AHandController* AHandController::GetOtherHand()
+{
+	return OtherController;
+}
