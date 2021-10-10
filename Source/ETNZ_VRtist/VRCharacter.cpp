@@ -79,12 +79,12 @@ void AVRCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	
+	/*
 	FVector NewCameraOffset = Camera->GetComponentLocation() - GetActorLocation();
 	NewCameraOffset.Z = 0;
 	AddActorWorldOffset(NewCameraOffset);
 	VRRoot->AddWorldOffset(-NewCameraOffset);
-	
+	*/
 	
 	//UpdateBlinkers();
 }
