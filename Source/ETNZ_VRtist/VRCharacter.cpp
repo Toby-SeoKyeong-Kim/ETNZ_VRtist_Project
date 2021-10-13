@@ -47,7 +47,6 @@ void AVRCharacter::BeginPlay()
 			LeftHand->SetOwner(this);
 			LeftHand->SetHand(EControllerHand::Left);
 			LeftHand->Widgetinteraction->PointerIndex = 0.0;
-
 			if (IsController)
 			{
 				LeftHand->Widgetinteraction->PointerIndex = 2.0;
