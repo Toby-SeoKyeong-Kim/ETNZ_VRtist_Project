@@ -45,6 +45,7 @@ public:
 	virtual void GetAudioDataFromSynthComponent(const TArray<float>& inData);
 	void SetShift(float shift);
 	void SetSpeed(float speed);
+	void SetSpeed2(float speed);
 	void SetHighEQ(float value);
 	void SetMidEQ(float value);
 	void SetLowEQ(float value);
@@ -97,6 +98,7 @@ private:
 	float ShiftVal = 0.0;
 	float PitchShiftRatio = powf(2.0, ShiftVal / 12.0);
 	float Speed = 1.0;
+	float Speed2 = 1.0;
 	float ScaleFactor = 0.2f;
 
 	int16 IntimeWritePointer = 0;
@@ -172,6 +174,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "DJMachine")
 		void SetSpeed(float InSpeed);
 	UFUNCTION(BlueprintCallable, Category = "DJMachine")
+		void SetSpeed2(float InSpeed);
+	UFUNCTION(BlueprintCallable, Category = "DJMachine")
 		void SetHigh(float value);
 	UFUNCTION(BlueprintCallable, Category = "DJMachine")
 		void SetMid(float value);
@@ -221,7 +225,8 @@ private:
 	int32 TotalNumSample;
 
 	TArray<float> AudioData;
-	float Speed;
+	float Speed = 1.f;
+	float Speed2 = 1.f;
 	float PitchShift;
 	float HighEQ = 1.f;
 	float MidEQ = 1.f;

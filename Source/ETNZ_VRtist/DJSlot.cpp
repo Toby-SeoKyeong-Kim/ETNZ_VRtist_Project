@@ -193,6 +193,13 @@ void FDJGenerator::SetSpeed(float speed)
 			Speed = speed;
 		});
 }
+void FDJGenerator::SetSpeed2(float speed)
+{
+	SynthCommand([this, speed]()
+		{
+			Speed2 = speed;
+		});
+}
 void FDJGenerator::SetHighEQ(float value)
 {
 	SynthCommand([this, value]()
@@ -412,7 +419,7 @@ int32 FDJGenerator::OnGenerateAudio(float* OutAudio, int32 NumSamples)
 	CFFTBuffer5 = CFFTBuffer5.shift(FFTSize);
 	CFFTBuffer6 = CFFTBuffer6.shift(FFTSize);
 	CFFTBuffer7 = CFFTBuffer7.shift(FFTSize);
-	GlobalPointer += (int32)(NumSamples * Speed);
+	GlobalPointer += (int32)(NumSamples * Speed * Speed2);
 	return NumSamples;
 
 }
@@ -458,6 +465,8 @@ ISoundGeneratorPtr UDJSlot::CreateSoundGenerator(const FSoundGeneratorInitParams
 		ToneGen->FilterOn = FilterOn;
 		ToneGen->CaculateCoefficient(CutoffFreq, Qval, FilterType);
 		ToneGen->WaitingHotCue = WaitingHotCue;
+		ToneGen->SetSpeed(Speed);
+		ToneGen->SetSpeed2(Speed2);
 	}
 
 
@@ -481,6 +490,15 @@ void UDJSlot::SetSpeed(float InSpeed)
 	{
 		FDJGenerator* ToneGen = static_cast<FDJGenerator*>(DJSoundGen.Get());
 		ToneGen->SetSpeed(InSpeed);
+	}
+}
+void UDJSlot::SetSpeed2(float InSpeed)
+{
+	Speed2 = InSpeed;
+	if (DJSoundGen.IsValid())
+	{
+		FDJGenerator* ToneGen = static_cast<FDJGenerator*>(DJSoundGen.Get());
+		ToneGen->SetSpeed2(InSpeed);
 	}
 }
 void UDJSlot::SetHigh(float value)
