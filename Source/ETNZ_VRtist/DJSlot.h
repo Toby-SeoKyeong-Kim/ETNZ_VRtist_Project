@@ -237,7 +237,7 @@ private:
 	int FilterType = 0;
 	bool FilterOn = false;
 	int32 HotCueSlot[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-	float CutoffFreq = 2000.f;
+	float CutoffFreq =500.f;
 	float Qval = 0.707;
 	bool WaitingHotCue = false;
 };

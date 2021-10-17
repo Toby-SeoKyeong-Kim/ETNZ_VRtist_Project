@@ -3,8 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Math/Vector2D.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "HotcueManager.generated.h"
+
 
 /**
  * 
@@ -14,9 +16,13 @@ class ETNZ_VRTIST_API UHotcueManager : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 
+		
+
 		UFUNCTION(BlueprintCallable, Category = "DJMachine", meta = (keywords = "HotCue"))
 		static bool SaveHotcueData(FString SaveDir, FString FileName, TArray<FString> SaveText);
 
 		UFUNCTION(BlueprintCallable, Category = "DJMachine", meta = (keywords = "HotCue"))
 		static bool LoadHotcueData(TArray< FString >& Result, FString LoadDir);
+
+		
 };

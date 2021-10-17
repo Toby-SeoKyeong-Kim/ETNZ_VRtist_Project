@@ -18,7 +18,7 @@ FDJGenerator::FDJGenerator(int32 InSampleRate, int32 InNumChannels)
 	SynthMag.SetNum(FFTSize / 2 + 1);
 	SynthFreq.SetNum(FFTSize / 2 + 1);
 
-	FilterInterp.SetNum(FFTSize/2);
+	FilterInterp.SetNum(1024);
 	FilterInterpInit();
 
 	SetWindow(FFTSize);
@@ -39,26 +39,28 @@ FDJGenerator::~FDJGenerator()
 
 void FDJGenerator::FilterInterpInit()
 {
-	double x0 = 0;
-	double x1 = 100;
-	double x2 = 100;
+	float x0 = 0;
+	float x1 = 1024;
+	float x2 = 1024;
 
-	double y0 = 0;
-	double y1 = 0;
-	double y2 = 512;
-	double percent = 0.0;
-	for (size_t i = 0; i < 100; i ++) {
-		double toInt = ((y0 * (1 - percent) + y1 * percent) * (1 - percent) + (y1 * (1 - percent) + y2 * percent) * percent) + .5;
-		FilterInterp[i] = (int32)toInt;
-
-		percent += 0.01;
+	float y0 = 0;
+	float y1 = 0;
+	float y2 = 24000;
+	float percent = 0.0;
+	for (size_t i = 0; i < 1024; i ++) {
+		float toInt = ((y0 * (1.f - percent) + y1 * percent) * (1 - percent) + (y1 * (1.f - percent) + y2 * percent) * percent) + .5;
+		FilterInterp[i] = toInt;
+		
+		percent += 1.f/1024.f;
 	}
 }
 void FDJGenerator::CaculateCoefficient(float Freq, float q, int type)
 {
 	SynthCommand([this, Freq, q, type]()
 		{
-			float k = tanf(PI * Freq / 48000.f);
+			
+			float k = tanf(PI * FilterInterp[(int)Freq] / 48000.f);
+			
 			float norm = 1.0 / (1 + k / q + k * k);
 
 			switch (type)
@@ -730,3 +732,5 @@ void UDJSlot::SetWaitingHotCue(bool HotCue)
 		ToneGen->WaitingHotCue = WaitingHotCue;
 	}
 }
+
+
