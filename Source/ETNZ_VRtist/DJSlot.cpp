@@ -40,7 +40,7 @@ FDJGenerator::~FDJGenerator()
 void FDJGenerator::FilterInterpInit()
 {
 	float x0 = 0;
-	float x1 = 1024;
+	float x1 = 4096;
 	float x2 = 1024;
 
 	float y0 = 0;
