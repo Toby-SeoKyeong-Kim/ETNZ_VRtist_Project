@@ -68,6 +68,7 @@ void AVRCharacter::BeginPlay()
 			}
 		}
 		LeftHand->PairController(RightHand);
+		RightHand->PairController(LeftHand);
 	}
 	
 	
