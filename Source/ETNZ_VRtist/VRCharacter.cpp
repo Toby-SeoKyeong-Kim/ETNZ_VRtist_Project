@@ -21,6 +21,8 @@ AVRCharacter::AVRCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 
 	VRRoot = CreateDefaultSubobject<USceneComponent>(TEXT("VRRoot"));
+	//SetRootComponent(VRRoot);
+
 	VRRoot->SetupAttachment(GetRootComponent());
 	
 
@@ -78,7 +80,13 @@ void AVRCharacter::BeginPlay()
 void AVRCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	if (!IsController && !bIsPicker)
+	{
+		FVector NewCameraOffset = Camera->GetComponentLocation() - GetActorLocation();
+		NewCameraOffset.Z = 0;
+		AddActorWorldOffset(NewCameraOffset);
+		VRRoot->AddWorldOffset(-NewCameraOffset);
+	}
 	/*
 	FVector NewCameraOffset = Camera->GetComponentLocation() - GetActorLocation();
 	NewCameraOffset.Z = 0;
