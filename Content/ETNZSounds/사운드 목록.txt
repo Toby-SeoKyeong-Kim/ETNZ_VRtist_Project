@@ -1,0 +1,31 @@
+자연의 향기
+
+ETNZ Bird - 새소리
+ETNZ Cricket - 풀벌레
+ETNZ Grass - 풀소리
+ETNZ Water - 물소리
+ETNZ Nature Amb - 그 외 전체적인 환경음
+
+크레이지 라운지
+ETNZ CrazyLounge Amb - 크레이지 라운지 앰비언스
+
+파티클라우드
+ETNZ PartyCloud Amb loop - 파티클라우드 앰비언스
+
+기타 UI 효과음
+ETNZ menu - 메뉴열기 / 커서 이동 (메뉴에서 항목 왔다갔다할때)
+ETNZ confirm - 선택 / 확인
+ETNZ back - 취소 / 뒤로 가기
+ETNZ error - 오류
+
+
+
+--------------------------------------------------------------------
+Freesound.org에서 사용한 음원목록
+
+51585__jovica__melodrone-multisample-17-the-void-c4
+67884__benboncan__lake-waves-2
+517995__waweee__wind-in-the-grass
+542794__erickbloem-200250__200250-erick-bloem-sd100-ruffle
+488947__leonseptavaux__crickets-sound-night-2
+352867__revolt2563__twilight-ambience
