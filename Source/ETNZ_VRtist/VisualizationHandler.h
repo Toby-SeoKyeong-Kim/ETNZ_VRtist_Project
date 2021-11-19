@@ -23,7 +23,14 @@ class ETNZ_VRTIST_API UVisualizationHandler : public UObject
 {
 	GENERATED_BODY()
 
+		bool IsNameStableForNetworking() const override {
+		return true;
+	}
 
+	bool IsSupportedForNetworking() const override
+	{
+		return true;
+	}
 	UPROPERTY(BlueprintAssignable, Category = "Visualization")
 		FOnAudioFinished OnDJFinished;
 

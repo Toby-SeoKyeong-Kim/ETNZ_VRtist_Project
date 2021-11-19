@@ -143,6 +143,14 @@ public:
 
 	virtual ISoundGeneratorPtr CreateSoundGenerator(const FSoundGeneratorInitParams& InParams);
 
+	bool IsNameStableForNetworking() const override {
+		return true;
+	}
+
+	bool IsSupportedForNetworking() const override
+	{
+		return true;
+	}
 	int32 GlobalPointer = 0;
 
 	UPROPERTY(BlueprintAssignable, Category = "DJMachine")

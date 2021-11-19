@@ -16,7 +16,14 @@ class ETNZ_VRTIST_API UHotcueManager : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 
-		
+		bool IsNameStableForNetworking() const override {
+		return true;
+		}	
+
+		bool IsSupportedForNetworking() const override
+		{
+			return true;
+		}
 
 		UFUNCTION(BlueprintCallable, Category = "DJMachine", meta = (keywords = "HotCue"))
 		static bool SaveHotcueData(FString SaveDir, FString FileName, TArray<FString> SaveText);
