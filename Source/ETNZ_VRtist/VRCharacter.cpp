@@ -42,6 +42,12 @@ void AVRCharacter::BeginPlay()
 	
 	
 
+	
+	
+	
+}
+void AVRCharacter::GenerateHands()
+{
 	if (!bIsPicker) {
 		LeftHand = GetWorld()->SpawnActor<AHandController>(HandControllerClass);
 		if (LeftHand != nullptr) {
@@ -52,7 +58,7 @@ void AVRCharacter::BeginPlay()
 			if (IsController)
 			{
 				LeftHand->Widgetinteraction->PointerIndex = 2.0;
-				LeftHand->SetActorHiddenInGame(true);
+				//LeftHand->SetActorHiddenInGame(true);
 			}
 		}
 
@@ -66,16 +72,13 @@ void AVRCharacter::BeginPlay()
 			if (IsController)
 			{
 				RightHand->Widgetinteraction->PointerIndex = 3.0;
-				RightHand->SetActorHiddenInGame(true);
+				//RightHand->SetActorHiddenInGame(true);
 			}
 		}
 		LeftHand->PairController(RightHand);
 		RightHand->PairController(LeftHand);
 	}
-	
-	
 }
-
 // Called every frame
 void AVRCharacter::Tick(float DeltaTime)
 {

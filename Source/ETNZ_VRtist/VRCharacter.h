@@ -44,6 +44,8 @@ public:
 		void RotateRoot(float inFloat);
 	UFUNCTION(BlueprintCallable, Category = "HandController")
 		void IsPicker(bool isPicker);
+	UFUNCTION(BlueprintCallable, Category = "HandController")
+		void GenerateHands();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 		USceneComponent* VRRoot;
